@@ -29,13 +29,19 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Export production JS bundle
+        run: npx expo export --platform android --output-dir dist
+
       - name: Generate Android project
         run: npx expo prebuild --platform android --non-interactive
 
       - name: Make Gradle executable
         run: chmod +x android/gradlew
 
-      - name: Build debug APK
+      - name: Build release APK
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon
 
