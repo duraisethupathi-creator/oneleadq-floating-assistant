@@ -1,1 +1,20 @@
-{"expo":{"name":"OneLeadQ Floating Assistant","slug":"oneleadq-floating-assistant","version":"1.0.0","orientation":"portrait","scheme":"oneleadqassistant","userInterfaceStyle":"automatic","newArchEnabled":true,"android":{"package":"com.oneleadq.floatingassistant"},"plugins":["expo-router"],"experiments":{"typedRoutes":true}}}
+{
+  "expo": {
+    "name": "OneLeadQ Floating Assistant",
+    "slug": "oneleadq-floating-assistant",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "oneleadqassistant",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
+    "android": {
+      "package": "com.oneleadq.floatingassistant"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
