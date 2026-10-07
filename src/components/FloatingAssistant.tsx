@@ -15,14 +15,14 @@ const moodUI:Record<Mood,{face:string,label:string,accent:string}>={
 };
 
 const walkFrames=[
- require('../../assets/assistant/walk/walk_01.png'),
- require('../../assets/assistant/walk/walk_02.png'),
- require('../../assets/assistant/walk/walk_03.png'),
- require('../../assets/assistant/walk/walk_04.png'),
- require('../../assets/assistant/walk/walk_05.png'),
- require('../../assets/assistant/walk/walk_06.png'),
- require('../../assets/assistant/walk/walk_07.png'),
- require('../../assets/assistant/walk/walk_08.png'),
+ require('../../walk_01.png'),
+ require('../../walk_02.png'),
+ require('../../walk_03.png'),
+ require('../../walk_04.png'),
+ require('../../walk_05.png'),
+ require('../../walk_06.png'),
+ require('../../walk_07.png'),
+ require('../../walk_08.png'),
 ];
 
 function AssistantMascot({state='idle'}:{state?:AssistantState}){
