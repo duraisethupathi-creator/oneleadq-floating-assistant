@@ -96,7 +96,6 @@ export default function FloatingAssistant(){
   if(open){
    setOpen(false);
    setMood('happy');
-   setTimeout(startWalking,120);
   }else{
    stopWalking();
    setOpen(true);
@@ -104,6 +103,16 @@ export default function FloatingAssistant(){
    setMessage("Hi! I'm your OneLeadQ AI Assistant. How can I help you today?");
   }
  }
+
+ useEffect(()=>{
+  if(open){
+   walkAnimation.current?.stop();
+   walkAnimation.current=null;
+   return;
+  }
+  const timer=setTimeout(startWalking,180);
+  return()=>clearTimeout(timer);
+ },[open]);
 
  function quick(text:string,next:Mood){
   setAssistantState('thinking');
