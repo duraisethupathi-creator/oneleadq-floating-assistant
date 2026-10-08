@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Speech from 'expo-speech';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Animated, Dimensions, Image, PanResponder, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -94,15 +95,31 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
   onMoveShouldSetPanResponder:()=>false,
  }),[]);
 
+ function speakVoicePrompt(){
+  Speech.stop();
+  setAssistantState('talking');
+  setMessage('என்ன செய்யணும்? சொல்லுங்க');
+  Speech.speak('என்ன செய்யணும்? சொல்லுங்க',{
+   language:'ta-IN',
+   rate:0.9,
+   pitch:1.0,
+   onDone:()=>setAssistantState('idle'),
+   onStopped:()=>setAssistantState('idle'),
+   onError:()=>setAssistantState('idle'),
+  });
+ }
+
  function toggleAssistant(){
   if(open){
+   Speech.stop();
    setOpen(false);
    setMood('happy');
   }else{
    stopWalking();
    setOpen(true);
    setMood('happy');
-   setMessage("Hi! I'm your OneLeadQ AI Assistant. How can I help you today?");
+   setMessage('என்ன செய்யணும்? சொல்லுங்க');
+   setTimeout(speakVoicePrompt,180);
   }
  }
 
