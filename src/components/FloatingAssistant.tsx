@@ -273,7 +273,6 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
    <View {...pan.panHandlers}>
     <Pressable accessibilityLabel="Open OneLeadQ assistant" onPress={toggleAssistant} style={s.bot}>
      <AssistantMascot state={assistantState} facingLeft={facingLeft}/>
-     <View style={[s.dot,{backgroundColor:ui.accent}]}/>
     </Pressable>
    </View>
   </Animated.View>
@@ -288,7 +287,6 @@ const s=StyleSheet.create({
  bot:{width:100,height:122,alignItems:'center',justifyContent:'flex-end',shadowColor:'#000',shadowOpacity:.16,shadowRadius:8,shadowOffset:{width:0,height:4}},
  mascotViewport:{width:'100%',height:'100%',overflow:'hidden',alignItems:'center',justifyContent:'flex-end'},
  mascot:{width:'100%',height:'100%'},
- dot:{position:'absolute',right:5,top:5,width:13,height:13,borderRadius:7,borderWidth:2,borderColor:'white'},
  panel:{position:'absolute',right:12,bottom:212,backgroundColor:'#FFFDF8',borderRadius:22,padding:14,borderWidth:1,borderColor:'#E5D8A8',shadowColor:'#000',shadowOpacity:.18,shadowRadius:12,shadowOffset:{width:0,height:5},elevation:24},
  head:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
  title:{fontSize:16,fontWeight:'900',color:'#0B5D4B'},
