@@ -53,22 +53,40 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
  const walkAnimation=useRef<Animated.CompositeAnimation|null>(null);
  const screenWidth=Dimensions.get('window').width;
  const travel=Math.max(0,screenWidth-124);
+ const heardSpeech=useRef(false);
+ const retryCount=useRef(0);
+ const listenTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
+
+ function clearListenTimer(){
+  if(listenTimer.current){clearTimeout(listenTimer.current);listenTimer.current=null;}
+ }
 
  useSpeechRecognitionEvent('start',()=>{
+  heardSpeech.current=false;
   setAssistantState('listening');
-  setMessage('கேட்கிறேன்… பேசுங்க');
+  setMessage('🎤 கேட்கிறேன்… பேசுங்க');
  });
  useSpeechRecognitionEvent('result',(event)=>{
   const text=event.results?.[0]?.transcript?.trim();
   if(text){
+   heardSpeech.current=true;
+   retryCount.current=0;
    setInput(text);
    setMessage(text);
   }
  });
- useSpeechRecognitionEvent('end',()=>setAssistantState('idle'));
- useSpeechRecognitionEvent('error',(event)=>{
+ useSpeechRecognitionEvent('end',()=>{
+  clearListenTimer();
   setAssistantState('idle');
-  setMessage(`Voice error: ${event.error}`);
+ });
+ useSpeechRecognitionEvent('error',(event)=>{
+  clearListenTimer();
+  setAssistantState('idle');
+  if(event.error==='no-speech'){
+   setMessage('குரல் கேட்கவில்லை. 🎤 மீண்டும் பேச Mic-ஐ அழுத்துங்க.');
+   return;
+  }
+  setMessage('Voice listening issue. Mic-ஐ அழுத்தி மீண்டும் முயற்சி செய்யுங்க.');
  });
 
  async function startListening(){
@@ -79,13 +97,21 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
     setMessage('Microphone permission தேவை.');
     return;
    }
+   clearListenTimer();
+   heardSpeech.current=false;
    setAssistantState('listening');
-   setMessage('கேட்கிறேன்… பேசுங்க');
+   setMessage('🎤 கேட்கிறேன்… பேசுங்க');
    ExpoSpeechRecognitionModule.start({
     lang:'ta-IN',
     interimResults:true,
     continuous:false,
+    maxAlternatives:1,
    });
+   listenTimer.current=setTimeout(()=>{
+    if(!heardSpeech.current){
+     try{ExpoSpeechRecognitionModule.stop();}catch{}
+    }
+   },10000);
   }catch{
    setAssistantState('idle');
    setMessage('Voice listening start ஆகவில்லை.');
@@ -149,7 +175,11 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
     rate:0.85,
     pitch:1.0,
     onStart:()=>setAssistantState('talking'),
-    onDone:()=>{setAssistantState('idle');void startListening();},
+    onDone:()=>{
+     setAssistantState('idle');
+     setMessage('ஒரு நிமிஷம்… Mic ready ஆகுது');
+     setTimeout(()=>{void startListening();},650);
+    },
     onStopped:()=>setAssistantState('idle'),
     onError:()=>setAssistantState('idle'),
    };
@@ -169,6 +199,8 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
  function toggleAssistant(){
   if(open){
    Speech.stop();
+   clearListenTimer();
+   try{ExpoSpeechRecognitionModule.abort();}catch{}
    setOpen(false);
    setMood('happy');
   }else{
@@ -225,6 +257,10 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
   {open&&<View style={s.panel}>
    <View style={s.head}><View><Text style={s.title}>OneLeadQ Assistant</Text><Text style={[s.state,{color:ui.accent}]}>{ui.label}</Text></View><Pressable accessibilityLabel="Close assistant" onPress={toggleAssistant} style={s.close}><Ionicons name="close" size={20}/></Pressable></View>
    <View style={s.reply}><View style={s.replyMascot}><AssistantMascot state={assistantState}/></View><Text style={s.replyText}>{message}</Text></View>
+   <View style={s.voiceRow}>
+    <Pressable accessibilityLabel="Start voice listening" onPress={()=>{void startListening();}} style={[s.mic,assistantState==='listening'&&s.micListening]}><Ionicons name={assistantState==='listening'?'mic':'mic-outline'} size={22} color="white"/></Pressable>
+    <Text style={s.voiceHint}>{assistantState==='listening'?'Listening… பேசுங்க':'Mic-ஐ அழுத்தி மீண்டும் பேசலாம்'}</Text>
+   </View>
    <View style={s.actions}>
     <Pressable style={s.chip} onPress={()=>quick('I can review the current campaign and flag low-performance areas.','idea')}><Text style={s.chipText}>Ads idea</Text></Pressable>
     <Pressable style={s.chip} onPress={()=>quick('SEO check is ready. I can surface title, keyword and local SEO issues.','success')}><Text style={s.chipText}>SEO check</Text></Pressable>
@@ -260,6 +296,10 @@ const s=StyleSheet.create({
  actions:{flexDirection:'row',flexWrap:'wrap',gap:7,marginTop:10},
  chip:{borderWidth:1,borderColor:'#D8CFB2',borderRadius:16,paddingHorizontal:11,paddingVertical:8},
  chipText:{fontSize:12,fontWeight:'800',color:'#0B5D4B'},
+ voiceRow:{flexDirection:'row',alignItems:'center',gap:9,marginTop:10},
+ mic:{width:44,height:44,borderRadius:22,backgroundColor:'#0B5D4B',alignItems:'center',justifyContent:'center'},
+ micListening:{transform:[{scale:1.08}]},
+ voiceHint:{flex:1,fontSize:12,fontWeight:'700',color:'#5F6E69'},
  inputRow:{flexDirection:'row',gap:8,marginTop:10},
  input:{flex:1,minHeight:44,borderWidth:1,borderColor:'#D8CFB2',borderRadius:14,paddingHorizontal:12,backgroundColor:'white'},
  send:{width:44,height:44,borderRadius:14,backgroundColor:'#0B5D4B',alignItems:'center',justifyContent:'center'}
