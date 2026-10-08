@@ -95,18 +95,36 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
   onMoveShouldSetPanResponder:()=>false,
  }),[]);
 
- function speakVoicePrompt(){
-  Speech.stop();
+ async function speakVoicePrompt(){
+  await Speech.stop();
   setAssistantState('talking');
   setMessage('என்ன செய்யணும்? சொல்லுங்க');
-  Speech.speak('என்ன செய்யணும்? சொல்லுங்க',{
-   language:'ta-IN',
-   rate:0.9,
-   pitch:1.0,
-   onDone:()=>setAssistantState('idle'),
-   onStopped:()=>setAssistantState('idle'),
-   onError:()=>setAssistantState('idle'),
-  });
+
+  try{
+   const voices=await Speech.getAvailableVoicesAsync();
+   const tamilVoice=voices.find(v=>v.language?.toLowerCase()==='ta-in')
+    ?? voices.find(v=>v.language?.toLowerCase().startsWith('ta'));
+
+   const options:Speech.SpeechOptions={
+    language:tamilVoice?.language ?? 'ta-IN',
+    rate:0.85,
+    pitch:1.0,
+    onStart:()=>setAssistantState('talking'),
+    onDone:()=>setAssistantState('idle'),
+    onStopped:()=>setAssistantState('idle'),
+    onError:()=>setAssistantState('idle'),
+   };
+
+   if(tamilVoice?.identifier)options.voice=tamilVoice.identifier;
+   Speech.speak('என்ன செய்யணும்? சொல்லுங்க',options);
+  }catch{
+   Speech.speak('What should I do? Tell me',{
+    language:'en-IN',
+    rate:0.9,
+    onDone:()=>setAssistantState('idle'),
+    onError:()=>setAssistantState('idle'),
+   });
+  }
  }
 
  function toggleAssistant(){
@@ -119,7 +137,7 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
    setOpen(true);
    setMood('happy');
    setMessage('என்ன செய்யணும்? சொல்லுங்க');
-   setTimeout(speakVoicePrompt,180);
+   setTimeout(()=>{void speakVoicePrompt();},350);
   }
  }
 
