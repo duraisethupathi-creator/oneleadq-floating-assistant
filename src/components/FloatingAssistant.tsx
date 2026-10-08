@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Animated, Dimensions, Image, PanResponder, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -52,6 +53,44 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
  const walkAnimation=useRef<Animated.CompositeAnimation|null>(null);
  const screenWidth=Dimensions.get('window').width;
  const travel=Math.max(0,screenWidth-124);
+
+ useSpeechRecognitionEvent('start',()=>{
+  setAssistantState('listening');
+  setMessage('கேட்கிறேன்… பேசுங்க');
+ });
+ useSpeechRecognitionEvent('result',(event)=>{
+  const text=event.results?.[0]?.transcript?.trim();
+  if(text){
+   setInput(text);
+   setMessage(text);
+  }
+ });
+ useSpeechRecognitionEvent('end',()=>setAssistantState('idle'));
+ useSpeechRecognitionEvent('error',(event)=>{
+  setAssistantState('idle');
+  setMessage(`Voice error: ${event.error}`);
+ });
+
+ async function startListening(){
+  try{
+   const permission=await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+   if(!permission.granted){
+    setAssistantState('idle');
+    setMessage('Microphone permission தேவை.');
+    return;
+   }
+   setAssistantState('listening');
+   setMessage('கேட்கிறேன்… பேசுங்க');
+   ExpoSpeechRecognitionModule.start({
+    lang:'ta-IN',
+    interimResults:true,
+    continuous:false,
+   });
+  }catch{
+   setAssistantState('idle');
+   setMessage('Voice listening start ஆகவில்லை.');
+  }
+ }
 
  const stopWalking=()=>{
   walkAnimation.current?.stop();
@@ -110,7 +149,7 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
     rate:0.85,
     pitch:1.0,
     onStart:()=>setAssistantState('talking'),
-    onDone:()=>setAssistantState('idle'),
+    onDone:()=>{setAssistantState('idle');void startListening();},
     onStopped:()=>setAssistantState('idle'),
     onError:()=>setAssistantState('idle'),
    };
