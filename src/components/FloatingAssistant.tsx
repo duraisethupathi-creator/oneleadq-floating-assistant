@@ -282,7 +282,7 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
 export default FloatingAssistant;
 
 const s=StyleSheet.create({
- layer:{...StyleSheet.absoluteFillObject,zIndex:999,elevation:30,pointerEvents:'box-none'},
+ layer:{position:'absolute',top:0,right:0,bottom:0,left:0,zIndex:999,elevation:30,pointerEvents:'box-none'},
  walker:{position:'absolute',right:12,bottom:82,alignItems:'flex-end'},
  bot:{width:100,height:122,alignItems:'center',justifyContent:'flex-end',shadowColor:'#000',shadowOpacity:.16,shadowRadius:8,shadowOffset:{width:0,height:4}},
  mascotViewport:{width:'100%',height:'100%',overflow:'hidden',alignItems:'center',justifyContent:'flex-end'},
