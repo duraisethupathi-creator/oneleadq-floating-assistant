@@ -53,6 +53,7 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
  const walkAnimation=useRef<Animated.CompositeAnimation|null>(null);
  const screenWidth=Dimensions.get('window').width;
  const travel=Math.max(0,screenWidth-124);
+ const panelWidth=Math.min(310,screenWidth-24);
  const heardSpeech=useRef(false);
  const retryCount=useRef(0);
  const listenTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -253,8 +254,8 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
 
  const ui=moodUI[mood];
 
- return <Animated.View pointerEvents="box-none" style={[s.wrap,{transform:[{translateX:walkX}]}]}>
-  {open&&<View style={s.panel}>
+ return <Animated.View pointerEvents="box-none" style={[s.wrap,open?s.wrapOpen:null,{transform:[{translateX:open?0:walkX}]}]}>
+  {open&&<View style={[s.panel,{width:panelWidth}]}>
    <View style={s.head}><View><Text style={s.title}>OneLeadQ Assistant</Text><Text style={[s.state,{color:ui.accent}]}>{ui.label}</Text></View><Pressable accessibilityLabel="Close assistant" onPress={toggleAssistant} style={s.close}><Ionicons name="close" size={20}/></Pressable></View>
    <View style={s.reply}><View style={s.replyMascot}><AssistantMascot state={assistantState}/></View><Text style={s.replyText}>{message}</Text></View>
    <View style={s.voiceRow}>
@@ -281,6 +282,7 @@ export default FloatingAssistant;
 
 const s=StyleSheet.create({
  wrap:{position:'absolute',right:12,bottom:82,zIndex:999,elevation:30,alignItems:'flex-end'},
+ wrapOpen:{right:12},
  bot:{width:100,height:122,alignItems:'center',justifyContent:'flex-end',shadowColor:'#000',shadowOpacity:.16,shadowRadius:8,shadowOffset:{width:0,height:4}},
  mascotViewport:{width:'100%',height:'100%',overflow:'hidden',alignItems:'center',justifyContent:'flex-end'},
  mascot:{width:'100%',height:'100%'},
