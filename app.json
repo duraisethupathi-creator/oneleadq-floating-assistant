@@ -12,7 +12,14 @@
     "plugins": [
       "expo-router",
       "expo-audio",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow OneLeadQ Assistant to listen to your voice.",
+          "speechRecognitionPermission": "Allow OneLeadQ Assistant to recognize your speech."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
