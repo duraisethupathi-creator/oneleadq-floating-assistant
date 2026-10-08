@@ -254,7 +254,7 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
 
  const ui=moodUI[mood];
 
- return <Animated.View pointerEvents="box-none" style={[s.wrap,open?s.wrapOpen:null,{transform:[{translateX:open?0:walkX}]}]}>
+ return <View pointerEvents="box-none" style={s.layer}>
   {open&&<View style={[s.panel,{width:panelWidth}]}>
    <View style={s.head}><View><Text style={s.title}>OneLeadQ Assistant</Text><Text style={[s.state,{color:ui.accent}]}>{ui.label}</Text></View><Pressable accessibilityLabel="Close assistant" onPress={toggleAssistant} style={s.close}><Ionicons name="close" size={20}/></Pressable></View>
    <View style={s.reply}><View style={s.replyMascot}><AssistantMascot state={assistantState}/></View><Text style={s.replyText}>{message}</Text></View>
@@ -269,25 +269,27 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
    </View>
    <View style={s.inputRow}><TextInput value={input} onChangeText={setInput} onSubmitEditing={send} placeholder="Ask me anything…" style={s.input}/><Pressable onPress={send} style={s.send}><Ionicons name="arrow-up" size={20} color="white"/></Pressable></View>
   </View>}
-  <View {...pan.panHandlers}>
-   <Pressable accessibilityLabel="Open OneLeadQ assistant" onPress={toggleAssistant} style={s.bot}>
-    <AssistantMascot state={assistantState} facingLeft={facingLeft}/>
-    <View style={[s.dot,{backgroundColor:ui.accent}]}/>
-   </Pressable>
-  </View>
- </Animated.View>
+  <Animated.View pointerEvents="box-none" style={[s.walker,{transform:[{translateX:open?0:walkX}]}]}>
+   <View {...pan.panHandlers}>
+    <Pressable accessibilityLabel="Open OneLeadQ assistant" onPress={toggleAssistant} style={s.bot}>
+     <AssistantMascot state={assistantState} facingLeft={facingLeft}/>
+     <View style={[s.dot,{backgroundColor:ui.accent}]}/>
+    </Pressable>
+   </View>
+  </Animated.View>
+ </View>
 });
 
 export default FloatingAssistant;
 
 const s=StyleSheet.create({
- wrap:{position:'absolute',right:12,bottom:82,zIndex:999,elevation:30,alignItems:'flex-end'},
- wrapOpen:{right:12},
+ layer:{...StyleSheet.absoluteFillObject,zIndex:999,elevation:30,pointerEvents:'box-none'},
+ walker:{position:'absolute',right:12,bottom:82,alignItems:'flex-end'},
  bot:{width:100,height:122,alignItems:'center',justifyContent:'flex-end',shadowColor:'#000',shadowOpacity:.16,shadowRadius:8,shadowOffset:{width:0,height:4}},
  mascotViewport:{width:'100%',height:'100%',overflow:'hidden',alignItems:'center',justifyContent:'flex-end'},
  mascot:{width:'100%',height:'100%'},
  dot:{position:'absolute',right:5,top:5,width:13,height:13,borderRadius:7,borderWidth:2,borderColor:'white'},
- panel:{width:310,maxWidth:'90%',backgroundColor:'#FFFDF8',borderRadius:22,padding:14,marginBottom:8,borderWidth:1,borderColor:'#E5D8A8',shadowColor:'#000',shadowOpacity:.18,shadowRadius:12,shadowOffset:{width:0,height:5}},
+ panel:{position:'absolute',right:12,bottom:212,backgroundColor:'#FFFDF8',borderRadius:22,padding:14,borderWidth:1,borderColor:'#E5D8A8',shadowColor:'#000',shadowOpacity:.18,shadowRadius:12,shadowOffset:{width:0,height:5},elevation:24},
  head:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
  title:{fontSize:16,fontWeight:'900',color:'#0B5D4B'},
  state:{fontSize:11,fontWeight:'800',marginTop:2},
