@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Animated, Dimensions, Image, PanResponder, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 type Mood='idle'|'happy'|'thinking'|'idea'|'alert'|'success';
@@ -38,7 +38,9 @@ function AssistantMascot({state='idle',facingLeft=false}:{state?:AssistantState;
  return <View style={s.mascotViewport}><Image source={source} style={[s.mascot,{transform:[{scaleX:facingLeft?-1:1}]}]} resizeMode="contain"/></View>;
 }
 
-export default function FloatingAssistant(){
+export type FloatingAssistantHandle={handleScreenTouch:()=>void};
+
+const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAssistant(_,ref){
  const [open,setOpen]=useState(false);
  const [mood,setMood]=useState<Mood>('happy');
  const [assistantState,setAssistantState]=useState<AssistantState>('walking');
@@ -134,6 +136,15 @@ export default function FloatingAssistant(){
   setTimeout(()=>quick(`I heard: “${q}”. Live AI answers will connect in the final AI integration stage.`,'idea'),220);
  }
 
+ useImperativeHandle(ref,()=>({
+  handleScreenTouch(){
+   if(open)return;
+   stopWalking();
+   setMood('happy');
+   setMessage("What can I help you with?");
+  }
+ }));
+
  const ui=moodUI[mood];
 
  return <Animated.View pointerEvents="box-none" style={[s.wrap,{transform:[{translateX:walkX}]}]}>
@@ -154,7 +165,9 @@ export default function FloatingAssistant(){
    </Pressable>
   </View>
  </Animated.View>
-}
+});
+
+export default FloatingAssistant;
 
 const s=StyleSheet.create({
  wrap:{position:'absolute',right:12,bottom:82,zIndex:999,elevation:30,alignItems:'flex-end'},
