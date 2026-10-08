@@ -25,7 +25,7 @@ const walkFrames=[
  require('../../asset/assistant/walk/walk_08.png'),
 ];
 
-function AssistantMascot({state='idle'}:{state?:AssistantState}){
+function AssistantMascot({state='idle',facingLeft=false}:{state?:AssistantState;facingLeft?:boolean}){
  const [frame,setFrame]=useState(0);
  const isWalking=state==='walking';
  useEffect(()=>{
@@ -34,37 +34,102 @@ function AssistantMascot({state='idle'}:{state?:AssistantState}){
   const timer=setInterval(()=>setFrame(v=>(v+1)%walkFrames.length),160);
   return()=>clearInterval(timer);
  },[isWalking]);
- // Until dedicated state assets arrive, non-walking states use one locked frame.
  const source=isWalking?walkFrames[frame]:walkFrames[0];
- return <View style={s.mascotViewport}><Image source={source} style={s.mascot} resizeMode="contain"/></View>;
+ return <View style={s.mascotViewport}><Image source={source} style={[s.mascot,{transform:[{scaleX:facingLeft?-1:1}]}]} resizeMode="contain"/></View>;
 }
 
 export default function FloatingAssistant(){
  const [open,setOpen]=useState(false);
  const [mood,setMood]=useState<Mood>('happy');
- const [assistantState,setAssistantState]=useState<AssistantState>('idle');
+ const [assistantState,setAssistantState]=useState<AssistantState>('walking');
+ const [facingLeft,setFacingLeft]=useState(true);
  const [message,setMessage]=useState("Hi! I'm your OneLeadQ AI Assistant. How can I help you today?");
  const [input,setInput]=useState('');
- const pos=useRef(new Animated.ValueXY({x:0,y:0})).current;
+ const walkX=useRef(new Animated.Value(0)).current;
+ const walkAnimation=useRef<Animated.CompositeAnimation|null>(null);
+ const screenWidth=Dimensions.get('window').width;
+ const travel=Math.max(0,screenWidth-124);
+
+ const stopWalking=()=>{
+  walkAnimation.current?.stop();
+  walkAnimation.current=null;
+  walkX.stopAnimation();
+  setAssistantState('idle');
+ };
+
+ const startWalking=()=>{
+  if(open)return;
+  walkAnimation.current?.stop();
+  setAssistantState('walking');
+
+  const walkLeft=()=>{
+   setFacingLeft(true);
+   const animation=Animated.timing(walkX,{toValue:-travel,duration:6500,useNativeDriver:true});
+   walkAnimation.current=animation;
+   animation.start(({finished})=>{if(finished)walkRight();});
+  };
+
+  const walkRight=()=>{
+   setFacingLeft(false);
+   const animation=Animated.timing(walkX,{toValue:0,duration:6500,useNativeDriver:true});
+   walkAnimation.current=animation;
+   animation.start(({finished})=>{if(finished)walkLeft();});
+  };
+
+  walkX.stopAnimation((value)=>{
+   if(value<=-travel+2)walkRight();
+   else walkLeft();
+  });
+ };
+
+ useEffect(()=>{
+  const timer=setTimeout(startWalking,500);
+  return()=>{clearTimeout(timer);walkAnimation.current?.stop();};
+ },[]);
+
  const pan=useMemo(()=>PanResponder.create({
-  onStartShouldSetPanResponder:()=>true,
-  onMoveShouldSetPanResponder:(_,g)=>Math.abs(g.dx)>4||Math.abs(g.dy)>4,
-  onPanResponderGrant:()=>{pos.setOffset({x:(pos.x as any)._value,y:(pos.y as any)._value});pos.setValue({x:0,y:0});},
-  onPanResponderMove:Animated.event([null,{dx:pos.x,dy:pos.y}],{useNativeDriver:false}),
-  onPanResponderRelease:()=>{
-   pos.flattenOffset();
-   const {width,height}=Dimensions.get('window');
-   const x=Math.max(-width+112,Math.min(0,(pos.x as any)._value));
-   const y=Math.max(-height+210,Math.min(0,(pos.y as any)._value));
-   Animated.spring(pos,{toValue:{x,y},useNativeDriver:false}).start();
+  onStartShouldSetPanResponder:()=>false,
+  onMoveShouldSetPanResponder:()=>false,
+ }),[]);
+
+ function toggleAssistant(){
+  if(open){
+   setOpen(false);
+   setMood('happy');
+   setTimeout(startWalking,120);
+  }else{
+   stopWalking();
+   setOpen(true);
+   setMood('happy');
+   setMessage("Hi! I'm your OneLeadQ AI Assistant. How can I help you today?");
   }
- }),[pos]);
- function quick(text:string,next:Mood){setAssistantState('thinking');setMood('thinking');setMessage('Checking…');setTimeout(()=>{setMood(next);setAssistantState('talking');setMessage(text);setTimeout(()=>setAssistantState('idle'),900)},650)}
- function send(){const q=input.trim();if(!q)return;setAssistantState('listening');setInput('');setTimeout(()=>quick(`I heard: “${q}”. Live AI answers will connect in the final AI integration stage.`,'idea'),220)}
+ }
+
+ function quick(text:string,next:Mood){
+  setAssistantState('thinking');
+  setMood('thinking');
+  setMessage('Checking…');
+  setTimeout(()=>{
+   setMood(next);
+   setAssistantState('talking');
+   setMessage(text);
+   setTimeout(()=>setAssistantState('idle'),900);
+  },650);
+ }
+
+ function send(){
+  const q=input.trim();
+  if(!q)return;
+  setAssistantState('listening');
+  setInput('');
+  setTimeout(()=>quick(`I heard: “${q}”. Live AI answers will connect in the final AI integration stage.`,'idea'),220);
+ }
+
  const ui=moodUI[mood];
- return <Animated.View pointerEvents="box-none" style={[s.wrap,{transform:pos.getTranslateTransform()}]}>
+
+ return <Animated.View pointerEvents="box-none" style={[s.wrap,{transform:[{translateX:walkX}]}]}>
   {open&&<View style={s.panel}>
-   <View style={s.head}><View><Text style={s.title}>OneLeadQ Assistant</Text><Text style={[s.state,{color:ui.accent}]}>{ui.label}</Text></View><Pressable accessibilityLabel="Close assistant" onPress={()=>setOpen(false)} style={s.close}><Ionicons name="close" size={20}/></Pressable></View>
+   <View style={s.head}><View><Text style={s.title}>OneLeadQ Assistant</Text><Text style={[s.state,{color:ui.accent}]}>{ui.label}</Text></View><Pressable accessibilityLabel="Close assistant" onPress={toggleAssistant} style={s.close}><Ionicons name="close" size={20}/></Pressable></View>
    <View style={s.reply}><View style={s.replyMascot}><AssistantMascot state={assistantState}/></View><Text style={s.replyText}>{message}</Text></View>
    <View style={s.actions}>
     <Pressable style={s.chip} onPress={()=>quick('I can review the current campaign and flag low-performance areas.','idea')}><Text style={s.chipText}>Ads idea</Text></Pressable>
@@ -74,8 +139,8 @@ export default function FloatingAssistant(){
    <View style={s.inputRow}><TextInput value={input} onChangeText={setInput} onSubmitEditing={send} placeholder="Ask me anything…" style={s.input}/><Pressable onPress={send} style={s.send}><Ionicons name="arrow-up" size={20} color="white"/></Pressable></View>
   </View>}
   <View {...pan.panHandlers}>
-   <Pressable accessibilityLabel="Open OneLeadQ assistant" onPress={()=>setOpen(v=>!v)} style={s.bot}>
-    <AssistantMascot state={assistantState}/>
+   <Pressable accessibilityLabel="Open OneLeadQ assistant" onPress={toggleAssistant} style={s.bot}>
+    <AssistantMascot state={assistantState} facingLeft={facingLeft}/>
     <View style={[s.dot,{backgroundColor:ui.accent}]}/>
    </Pressable>
   </View>
