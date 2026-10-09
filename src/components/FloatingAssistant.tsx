@@ -49,6 +49,7 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
  const [facingLeft,setFacingLeft]=useState(true);
  const [message,setMessage]=useState("Hi! I'm your OneLeadQ AI Assistant. How can I help you today?");
  const [input,setInput]=useState('');
+ const [textMode,setTextMode]=useState(false);
  const walkX=useRef(new Animated.Value(0)).current;
  const walkAnimation=useRef<Animated.CompositeAnimation|null>(null);
  const screenWidth=Dimensions.get('window').width;
@@ -203,10 +204,12 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
    clearListenTimer();
    try{ExpoSpeechRecognitionModule.abort();}catch{}
    setOpen(false);
+   setTextMode(false);
    setMood('happy');
   }else{
    stopWalking();
    setOpen(true);
+   setTextMode(false);
    setMood('happy');
    setMessage('என்ன செய்யணும்? சொல்லுங்க');
    setTimeout(()=>{void speakVoicePrompt();},350);
@@ -258,16 +261,15 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
   {open&&<View style={[s.panel,{width:panelWidth}]}>
    <View style={s.head}><View><Text style={s.title}>OneLeadQ Assistant</Text><Text style={[s.state,{color:ui.accent}]}>{ui.label}</Text></View><Pressable accessibilityLabel="Close assistant" onPress={toggleAssistant} style={s.close}><Ionicons name="close" size={20}/></Pressable></View>
    <View style={s.reply}><View style={s.replyMascot}><AssistantMascot state={assistantState}/></View><Text style={s.replyText}>{message}</Text></View>
-   <View style={s.voiceRow}>
-    <Pressable accessibilityLabel="Start voice listening" onPress={()=>{void startListening();}} style={[s.mic,assistantState==='listening'&&s.micListening]}><Ionicons name={assistantState==='listening'?'mic':'mic-outline'} size={22} color="white"/></Pressable>
-    <Text style={s.voiceHint}>{assistantState==='listening'?'Listening… பேசுங்க':'Mic-ஐ அழுத்தி மீண்டும் பேசலாம்'}</Text>
-   </View>
-   <View style={s.actions}>
-    <Pressable style={s.chip} onPress={()=>quick('I can review the current campaign and flag low-performance areas.','idea')}><Text style={s.chipText}>Ads idea</Text></Pressable>
-    <Pressable style={s.chip} onPress={()=>quick('SEO check is ready. I can surface title, keyword and local SEO issues.','success')}><Text style={s.chipText}>SEO check</Text></Pressable>
-    <Pressable style={s.chip} onPress={()=>quick('Content assistant is ready for captions, reels and post ideas.','happy')}><Text style={s.chipText}>Content</Text></Pressable>
-   </View>
-   <View style={s.inputRow}><TextInput value={input} onChangeText={setInput} onSubmitEditing={send} placeholder="Ask me anything…" style={s.input}/><Pressable onPress={send} style={s.send}><Ionicons name="arrow-up" size={20} color="white"/></Pressable></View>
+   {!textMode?<View style={s.voiceBox}>
+    <Pressable accessibilityLabel="Start voice listening" onPress={()=>{void startListening();}} style={[s.bigMic,assistantState==='listening'&&s.bigMicListening]}><Ionicons name={assistantState==='listening'?'mic':'mic-outline'} size={34} color="white"/></Pressable>
+    <Text style={s.voiceTitle}>{assistantState==='listening'?'Listening…':'Voice Chat'}</Text>
+    <Text style={s.voiceHint}>{assistantState==='listening'?'பேசுங்க… உங்கள் குரலை கேட்கிறேன்':'Mic-ஐ அழுத்தி பேசலாம்'}</Text>
+    <Pressable accessibilityLabel="Switch to text chat" onPress={()=>{clearListenTimer();try{ExpoSpeechRecognitionModule.abort();}catch{}setAssistantState('idle');setTextMode(true);}} style={s.keyboardButton}><Ionicons name="keypad-outline" size={20} color="#0B5D4B"/><Text style={s.keyboardText}>Text Chat</Text></Pressable>
+   </View>:<View style={s.textBox}>
+    <View style={s.textModeHead}><Text style={s.textModeTitle}>Text Chat</Text><Pressable accessibilityLabel="Switch to voice chat" onPress={()=>{setTextMode(false);void startListening();}} style={s.voiceSwitch}><Ionicons name="mic-outline" size={20} color="#0B5D4B"/><Text style={s.keyboardText}>Voice</Text></Pressable></View>
+    <View style={s.inputRow}><TextInput autoFocus value={input} onChangeText={setInput} onSubmitEditing={send} placeholder="Type your message…" style={s.input}/><Pressable onPress={send} style={s.send}><Ionicons name="arrow-up" size={20} color="white"/></Pressable></View>
+   </View>}
   </View>}
   <Animated.View pointerEvents="box-none" style={[s.walker,{transform:[{translateX:open?0:walkX}]}]}>
    <View {...pan.panHandlers}>
@@ -298,10 +300,17 @@ const s=StyleSheet.create({
  actions:{flexDirection:'row',flexWrap:'wrap',gap:7,marginTop:10},
  chip:{borderWidth:1,borderColor:'#D8CFB2',borderRadius:16,paddingHorizontal:11,paddingVertical:8},
  chipText:{fontSize:12,fontWeight:'800',color:'#0B5D4B'},
- voiceRow:{flexDirection:'row',alignItems:'center',gap:9,marginTop:10},
- mic:{width:44,height:44,borderRadius:22,backgroundColor:'#0B5D4B',alignItems:'center',justifyContent:'center'},
- micListening:{transform:[{scale:1.08}]},
- voiceHint:{flex:1,fontSize:12,fontWeight:'700',color:'#5F6E69'},
+ voiceBox:{alignItems:'center',marginTop:12,paddingVertical:12},
+ bigMic:{width:72,height:72,borderRadius:36,backgroundColor:'#0B5D4B',alignItems:'center',justifyContent:'center'},
+ bigMicListening:{transform:[{scale:1.08}]},
+ voiceTitle:{fontSize:16,fontWeight:'900',color:'#0B5D4B',marginTop:9},
+ voiceHint:{fontSize:12,fontWeight:'700',color:'#5F6E69',marginTop:4,textAlign:'center'},
+ keyboardButton:{marginTop:12,flexDirection:'row',alignItems:'center',gap:6,borderWidth:1,borderColor:'#D8CFB2',borderRadius:16,paddingHorizontal:13,paddingVertical:8,backgroundColor:'white'},
+ keyboardText:{fontSize:12,fontWeight:'800',color:'#0B5D4B'},
+ textBox:{marginTop:10},
+ textModeHead:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
+ textModeTitle:{fontSize:14,fontWeight:'900',color:'#0B5D4B'},
+ voiceSwitch:{flexDirection:'row',alignItems:'center',gap:5,borderWidth:1,borderColor:'#D8CFB2',borderRadius:14,paddingHorizontal:10,paddingVertical:7,backgroundColor:'white'},
  inputRow:{flexDirection:'row',gap:8,marginTop:10},
  input:{flex:1,minHeight:44,borderWidth:1,borderColor:'#D8CFB2',borderRadius:14,paddingHorizontal:12,backgroundColor:'white'},
  send:{width:44,height:44,borderRadius:14,backgroundColor:'#0B5D4B',alignItems:'center',justifyContent:'center'}
