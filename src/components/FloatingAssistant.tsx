@@ -270,7 +270,7 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
     <View style={s.textModeHead}><Text style={s.textModeTitle}>Text Chat</Text><Pressable accessibilityLabel="Switch to voice chat" onPress={()=>{setTextMode(false);void startListening();}} style={s.voiceSwitch}><Ionicons name="mic-outline" size={20} color="#0B5D4B"/><Text style={s.keyboardText}>Voice</Text></Pressable></View>
     <View style={s.inputRow}><TextInput autoFocus value={input} onChangeText={setInput} onSubmitEditing={send} placeholder="Type your message…" style={s.input}/><Pressable onPress={send} style={s.send}><Ionicons name="arrow-up" size={20} color="white"/></Pressable></View>
    </View>}
-  </View>}
+   </View></KeyboardAvoidingView>}
   <Animated.View pointerEvents="box-none" style={[s.walker,{transform:[{translateX:open?0:walkX}]}]}>
    <View {...pan.panHandlers}>
     <Pressable accessibilityLabel="Open OneLeadQ assistant" onPress={toggleAssistant} style={s.bot}>
