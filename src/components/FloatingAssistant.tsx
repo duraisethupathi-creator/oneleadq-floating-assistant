@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Animated, Dimensions, Image, PanResponder, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Animated, Dimensions, Image, KeyboardAvoidingView, PanResponder, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 type Mood='idle'|'happy'|'thinking'|'idea'|'alert'|'success';
 type AssistantState='idle'|'walking'|'listening'|'thinking'|'talking';
@@ -258,7 +258,7 @@ const FloatingAssistant=forwardRef<FloatingAssistantHandle>(function FloatingAss
  const ui=moodUI[mood];
 
  return <View pointerEvents="box-none" style={s.layer}>
-  {open&&<View style={[s.panel,{width:panelWidth}]}>
+  {open&&<KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':'height'} keyboardVerticalOffset={12} style={s.keyboardLayer} pointerEvents="box-none"><View style={[s.panel,{width:panelWidth}]}>
    <View style={s.head}><View><Text style={s.title}>OneLeadQ Assistant</Text><Text style={[s.state,{color:ui.accent}]}>{ui.label}</Text></View><Pressable accessibilityLabel="Close assistant" onPress={toggleAssistant} style={s.close}><Ionicons name="close" size={20}/></Pressable></View>
    <View style={s.reply}><View style={s.replyMascot}><AssistantMascot state={assistantState}/></View><Text style={s.replyText}>{message}</Text></View>
    {!textMode?<View style={s.voiceBox}>
@@ -289,7 +289,8 @@ const s=StyleSheet.create({
  bot:{width:100,height:122,alignItems:'center',justifyContent:'flex-end',shadowColor:'#000',shadowOpacity:.16,shadowRadius:8,shadowOffset:{width:0,height:4}},
  mascotViewport:{width:'100%',height:'100%',overflow:'hidden',alignItems:'center',justifyContent:'flex-end'},
  mascot:{width:'100%',height:'100%'},
- panel:{position:'absolute',right:12,bottom:212,backgroundColor:'#FFFDF8',borderRadius:22,padding:14,borderWidth:1,borderColor:'#E5D8A8',shadowColor:'#000',shadowOpacity:.18,shadowRadius:12,shadowOffset:{width:0,height:5},elevation:24},
+ keyboardLayer:{position:'absolute',top:0,right:0,bottom:0,left:0,justifyContent:'flex-end',alignItems:'flex-end',paddingRight:12,paddingBottom:212},
+ panel:{backgroundColor:'#FFFDF8',borderRadius:22,padding:14,borderWidth:1,borderColor:'#E5D8A8',shadowColor:'#000',shadowOpacity:.18,shadowRadius:12,shadowOffset:{width:0,height:5},elevation:24},
  head:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
  title:{fontSize:16,fontWeight:'900',color:'#0B5D4B'},
  state:{fontSize:11,fontWeight:'800',marginTop:2},
